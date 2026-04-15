@@ -138,6 +138,7 @@ export default function SignSpeakApp() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space' && activeMode.allowSpelling) {
+        e.preventDefault(); // Evita que se dispare el click en botones con foco
         setSpelledWord(w => w + ' ');
       }
     };
