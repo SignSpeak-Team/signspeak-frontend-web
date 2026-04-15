@@ -165,7 +165,8 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
           // Debounced continuous send
           if (now - lastCallRef.current > STATIC_DEBOUNCE_MS) {
             lastCallRef.current = now;
-            onLandmarks?.(formatted);
+            const handedness = result.handedness?.[0]?.[0]?.categoryName; // MediaPipe Tasks API structure
+            onLandmarks?.(formatted, handedness);
           }
         } else {
           // Buffer up to 15 frames then fire
@@ -175,9 +176,10 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
 
           if (count >= BUFFER_SIZE) {
             const seq = frameBufferRef.current.slice(0, BUFFER_SIZE);
+            const handedness = result.handedness?.[0]?.[0]?.categoryName;
             frameBufferRef.current = [];
             setBufferCount(0);
-            onSequenceReady?.(seq);
+            onSequenceReady?.(seq, handedness);
           }
         }
       } else {

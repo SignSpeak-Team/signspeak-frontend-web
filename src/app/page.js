@@ -40,11 +40,11 @@ export default function SignSpeakApp() {
   }, []);
 
   // Manejo de predicciones estáticas Frame-by-Frame
-  const handleLandmarks = useCallback(async (landmarks) => {
+  const handleLandmarks = useCallback(async (landmarks, handedness) => {
     if (activeModeId !== 'static' || isProcessing) return;
     setIsProcessing(true);
     try {
-      const res = await predictStatic(landmarks);
+      const res = await predictStatic(landmarks, handedness);
       setCurrentPred({ text: res.letter, confidence: res.confidence, type: 'static' });
     } catch {
       // Ignoramos errores transitorios por frame (ej. 422)
@@ -54,15 +54,15 @@ export default function SignSpeakApp() {
   }, [activeModeId, isProcessing]);
 
   // Manejo de buffers de 15 frames
-  const handleSequence = useCallback(async (sequence) => {
+  const handleSequence = useCallback(async (sequence, handedness) => {
     if (activeModeId === 'static' || isProcessing) return;
     setIsProcessing(true);
     try {
       if (activeModeId === 'dynamic') {
-        const res = await predictDynamic(sequence);
+        const res = await predictDynamic(sequence, handedness);
         setCurrentPred({ text: res.letter, confidence: res.confidence, type: 'dynamic' });
       } else if (activeModeId === 'words') {
-        const res = await predictWords(sequence);
+        const res = await predictWords(sequence, handedness);
         setCurrentPred({ 
           text: res.word, 
           confidence: res.confidence, 

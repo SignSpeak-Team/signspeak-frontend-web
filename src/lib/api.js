@@ -34,22 +34,22 @@ export async function getStatus() {
 // --- Prediction: Static letter (1 frame, 21 landmarks) ---
 // landmarks: [[x,y,z] × 21]
 // Response: { letter, confidence, type, processing_time_ms }
-export async function predictStatic(landmarks) {
-  return apiCall('POST', '/api/v1/predict/static', { landmarks });
+export async function predictStatic(landmarks, handedness = null) {
+  return apiCall('POST', '/api/v1/predict/static', { landmarks, handedness });
 }
 
 // --- Prediction: Dynamic letter (15 frames, 21 landmarks each) ---
 // sequence: [[[x,y,z]×21] × 15]
 // Response: { letter, confidence, type, processing_time_ms }
-export async function predictDynamic(sequence) {
-  return apiCall('POST', '/api/v1/predict/dynamic', { sequence });
+export async function predictDynamic(sequence, handedness = null) {
+  return apiCall('POST', '/api/v1/predict/dynamic', { sequence, handedness });
 }
 
 // --- Prediction: LSM Word (249 vocab, 15 frames) ---
 // sequence: [[[x,y,z]×21] × 15]
 // Response: { word, confidence, phrase, accepted, processing_time_ms }
-export async function predictWords(sequence) {
-  return apiCall('POST', '/api/v1/predict/words', { sequence });
+export async function predictWords(sequence, handedness = null) {
+  return apiCall('POST', '/api/v1/predict/words', { sequence, handedness });
 }
 
 // --- Prediction: Medical word (150 vocab, 226 holistic features) ---
