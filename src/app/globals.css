@@ -305,12 +305,15 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  color: white;
+  background: var(--accent-blue);
+  color: #ffffff;
+  font-weight: 600;
 }
 
-.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-primary:hover { 
+  background: #0071e3;
+}
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .btn-danger {
   background: rgba(239, 68, 68, 0.15);
