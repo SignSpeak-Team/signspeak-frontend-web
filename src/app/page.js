@@ -137,9 +137,14 @@ export default function SignSpeakApp() {
   // Manejo de teclado (Espacio para agregar espacio)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === 'Space' && activeMode.allowSpelling) {
-        e.preventDefault(); // Evita que se dispare el click en botones con foco
-        setSpelledWord(w => w + ' ');
+      if (activeMode.allowSpelling) {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          setSpelledWord(w => w + ' ');
+        } else if (e.code === 'Enter' && currentPred?.text) {
+          e.preventDefault();
+          setSpelledWord(w => w + currentPred.text);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
