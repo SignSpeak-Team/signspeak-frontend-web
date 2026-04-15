@@ -5,10 +5,10 @@ import CameraView from './components/CameraView';
 import { predictStatic, predictDynamic, predictWords, predictHolistic, clearWordBuffer, clearHolisticBuffer, getWordBufferStats, getStatus } from '@/lib/api';
 
 const MODES = [
-  { id: 'static', label: 'Letras Estáticas (A-Z)', shortLabel: 'Deletrear', icon: '✋', endpoint: predictStatic, allowSpelling: true },
-  { id: 'dynamic', label: 'Letras Dinámicas', shortLabel: 'Dinámicas', icon: '👋', endpoint: predictDynamic, allowSpelling: true },
-  { id: 'words', label: 'LSM Palabras', shortLabel: 'Palabras', icon: '💬', endpoint: predictWords, allowSpelling: false },
-  { id: 'holistic', label: 'Vocabulario Médico', shortLabel: 'Médico', icon: '🏥', endpoint: predictHolistic, allowSpelling: false },
+  { id: 'static', label: 'Letras Estáticas (A-Z)', shortLabel: 'Deletrear', icon: '', endpoint: predictStatic, allowSpelling: true },
+  { id: 'dynamic', label: 'Letras Dinámicas', shortLabel: 'Dinámicas', icon: '', endpoint: predictDynamic, allowSpelling: true },
+  { id: 'words', label: 'LSM Palabras', shortLabel: 'Palabras', icon: '', endpoint: predictWords, allowSpelling: false },
+  { id: 'holistic', label: 'Vocabulario Médico', shortLabel: 'Médico', icon: '', endpoint: predictHolistic, allowSpelling: false },
 ];
 
 export default function SignSpeakApp() {
@@ -134,6 +134,17 @@ export default function SignSpeakApp() {
     return () => { mounted = false; clearInterval(intv); };
   }, [activeModeId, phrase]);
 
+  // Manejo de teclado (Espacio para agregar espacio)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space' && activeMode.allowSpelling) {
+        setSpelledWord(w => w + ' ');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeMode.allowSpelling]);
+
   return (
     <>
       <header className="header">
@@ -241,8 +252,9 @@ export default function SignSpeakApp() {
                    className="btn btn-ghost" 
                    onClick={() => setSpelledWord(w => w.slice(0, -1))}
                    disabled={!spelledWord}
+                   title="Eliminar última letra"
                  >
-                    -
+                    ⌫
                  </button>
                  <button 
                    className="btn btn-danger" 

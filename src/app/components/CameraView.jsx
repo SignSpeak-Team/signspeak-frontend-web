@@ -5,10 +5,10 @@ import { getHandLandmarker, getPoseLandmarker } from '@/lib/mediapipe';
 import { handResultToLandmarks, buildHolisticVector } from '@/lib/api';
 
 const FRAME_COLORS = {
-  static: '#6c63ff',
-  dynamic: '#a78bfa',
-  words: '#22c55e',
-  holistic: '#06b6d4',
+  static: '#0a84ff', // Apple Blue
+  dynamic: '#64d2ff', // Apple Cyan
+  words: '#30d158', // Apple Green
+  holistic: '#ffffff', // Tech White
 };
 
 export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolisticReady, active }) {
@@ -142,7 +142,7 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
         if (hasHand || hasPose) {
           const color = FRAME_COLORS[mode] || '#06b6d4';
           if (hasHand) drawLandmarks(ctx, result.landmarks[0], color);
-          if (hasPose) drawLandmarks(ctx, poseResult.landmarks[0], '#eab308');
+          if (hasPose) drawLandmarks(ctx, poseResult.landmarks[0], '#ffd60a'); // Apple Yellow
 
           if (now - lastCallRef.current > STATIC_DEBOUNCE_MS) {
             lastCallRef.current = now;
@@ -206,20 +206,17 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
       <div className="camera-wrap">
         {camStatus === 'off' && (
           <div className="camera-placeholder">
-            <span className="cam-icon">📷</span>
             <span>Cámara desactivada</span>
           </div>
         )}
         {camStatus === 'loading' && (
           <div className="camera-placeholder">
-            <span className="cam-icon">⏳</span>
-            <span>Iniciando cámara…</span>
+            <span>Iniciando...</span>
           </div>
         )}
         {camStatus === 'error' && (
           <div className="camera-placeholder">
-            <span className="cam-icon">🚫</span>
-            <span>Sin acceso a la cámara</span>
+            <span>Error de cámara</span>
           </div>
         )}
         <video ref={videoRef} muted playsInline style={{ display: camStatus === 'on' ? 'block' : 'none' }} />
