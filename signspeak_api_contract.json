@@ -1,0 +1,278 @@
+{
+  "meta": {
+    "project": "SignSpeak",
+    "description": "Sistema de traducción en tiempo real de Lenguaje de Señas Mexicano (LSM)",
+    "backend_repo": "https://github.com/alanctinaDev/signSpeak",
+    "extracted_at": "2026-04-14",
+    "api_version": "1.0.0"
+  },
+
+  "base_urls": {
+    "local": "http://localhost:8080",
+    "docker_compose": "http://localhost:8080",
+    "note": "En producción usar la URL de Cloud Run (GCP) o AWS ECS Fargate"
+  },
+
+  "cors": {
+    "allowed_origins": "*",
+    "note": "En producción se configura via CORS_ORIGINS env var como lista separada por comas"
+  },
+
+  "endpoints": {
+    "health": {
+      "GET /api/v1/health": {
+        "description": "Health check básico para saber si el API Gateway está vivo",
+        "request_body": null,
+        "response_example": {
+          "status": "healthy",
+          "service": "API Gateway",
+          "version": "1.0.0"
+        }
+      },
+      "GET /api/v1/status": {
+        "description": "Estado detallado del sistema, incluyendo servicios internos (vision, translation)",
+        "request_body": null,
+        "response_example": {
+          "status": "operational",
+          "version": "API Gateway 1.0.0",
+          "uptime": "0:05:23",
+          "environment": "development",
+          "active_services": {
+            "api_gateway": "healthy",
+            "vision_service": "healthy",
+            "translation_service": "placeholder"
+          },
+          "timestamp": "2026-04-14T16:00:00"
+        }
+      }
+    },
+
+    "prediction": {
+      "POST /api/v1/predict/static": {
+        "description": "Predice una letra estática del LSM (A-Z, excepto J, K, Q, X, Z, Ñ). Usa 21 landmarks de la mano (1 frame).",
+        "mediapipe_solution": "HandLandmarker (hands)",
+        "request_body": {
+          "landmarks": {
+            "type": "array",
+            "items": "[x: float, y: float, z: float]",
+            "length": 21,
+            "coordinates_range": "0.0 a 1.0 (normalizados por MediaPipe)",
+            "example": [[0.5, 0.5, 0.0], "... × 21"]
+          }
+        },
+        "response": {
+          "letter": "string — letra predicha (ej: 'A')",
+          "confidence": "float — porcentaje 0-100 (ej: 92.5)",
+          "type": "string — siempre 'static'",
+          "processing_time_ms": "float — tiempo de procesamiento"
+        },
+        "response_example": {
+          "letter": "A",
+          "confidence": 92.5,
+          "type": "static",
+          "processing_time_ms": 18.3
+        }
+      },
+
+      "POST /api/v1/predict/dynamic": {
+        "description": "Predice una letra DINÁMICA del LSM: J, K, Q, X, Z, Ñ (requieren movimiento). Usa 15 frames de landmarks.",
+        "mediapipe_solution": "HandLandmarker (hands)",
+        "request_body": {
+          "sequence": {
+            "type": "array of arrays of arrays",
+            "shape": "[15 frames][21 landmarks][3 coordenadas]",
+            "note": "Acumular 15 frames consecutivos de la cámara antes de enviar",
+            "example": "[[[x,y,z] × 21] × 15]"
+          }
+        },
+        "response": {
+          "letter": "string — letra predicha (J, K, Q, X, Z o Ñ)",
+          "confidence": "float — porcentaje 0-100",
+          "type": "string — siempre 'dynamic'",
+          "processing_time_ms": "float"
+        }
+      },
+
+      "POST /api/v1/predict/words": {
+        "description": "Predice una PALABRA del vocabulario LSM (249 palabras de uso general). Usa 15 frames. Acumula frase automáticamente en el backend.",
+        "mediapipe_solution": "HandLandmarker (hands)",
+        "request_body": {
+          "sequence": {
+            "type": "array of arrays of arrays",
+            "shape": "[15 frames][21 landmarks][3 coordenadas]",
+            "note": "Igual que /predict/dynamic"
+          }
+        },
+        "response": {
+          "word": "string — palabra predicha",
+          "confidence": "float — porcentaje 0-100",
+          "phrase": "string — FRASE ACUMULADA hasta ahora (buffer del backend)",
+          "accepted": "boolean — si la predicción fue aceptada al buffer de frase",
+          "processing_time_ms": "float"
+        },
+        "response_example": {
+          "word": "hola",
+          "confidence": 87.2,
+          "phrase": "hola mundo",
+          "accepted": true,
+          "processing_time_ms": 45.1
+        },
+        "buffer_note": "El backend acumula palabras en una frase. Usa /words/clear para resetear."
+      },
+
+      "POST /api/v1/predict/holistic": {
+        "description": "Predice una PALABRA MÉDICA (150 términos médicos LSM). Usa landmarks holísticos: pose corporal + ambas manos.",
+        "mediapipe_solution": "Holistic (pose + manos)",
+        "request_body": {
+          "landmarks": {
+            "type": "array of float",
+            "length": 226,
+            "breakdown": {
+              "pose": "25 landmarks × 3 coords = 75 floats (torso/cara, referenciados al landmark 0=nariz)",
+              "left_hand": "21 landmarks × 3 coords = 63 floats (referenciados a la muñeca)",
+              "right_hand": "21 landmarks × 3 coords = 63 floats (referenciados a la muñeca)",
+              "padding": "hasta completar 226 si faltan datos"
+            },
+            "normalization": "Pose: relativo a nariz (lm[0]). Manos: relativo a muñeca (lm[0]).",
+            "example": [0.5, 0.5, 0.0, "... × 226"]
+          }
+        },
+        "response": {
+          "word": "string — término médico predicho",
+          "confidence": "float — porcentaje 0-100",
+          "phrase": "string — frase médica acumulada",
+          "accepted": "boolean",
+          "processing_time_ms": "float"
+        }
+      },
+
+      "GET /api/v1/predict/words/stats": {
+        "description": "Estadísticas del buffer de predicción de palabras",
+        "request_body": null,
+        "response_example": {
+          "total_received": 50,
+          "total_accepted": 32,
+          "rejected_by_cooldown": 10,
+          "rejected_by_confidence": 8,
+          "acceptance_rate": 64.0,
+          "current_phrase": "hola mundo cómo estás"
+        }
+      },
+
+      "POST /api/v1/predict/words/clear": {
+        "description": "Limpia el buffer acumulado de palabras y resetea la frase",
+        "request_body": null,
+        "response": "{ message: 'cleared' } (aprox)"
+      },
+
+      "POST /api/v1/predict/holistic/clear": {
+        "description": "Limpia el buffer acumulado de predicciones holísticas",
+        "request_body": null,
+        "response": "{ message: 'cleared' } (aprox)"
+      }
+    },
+
+    "translate_legacy": {
+      "POST /api/v1/translate/": {
+        "description": "Endpoint legacy de traducción. No es el flujo principal.",
+        "request_body": {
+          "video_url": "string | null — URL del video (opcional)",
+          "text": "string | null — texto alternativo (max 500 chars)",
+          "language": "string — default 'LSM'"
+        },
+        "response_example": {
+          "translation_id": "trans_gateway",
+          "text": "Hola, ¿cómo estás?",
+          "confidence": 0.95,
+          "status": "completed",
+          "created_at": "2026-04-14T16:00:00"
+        }
+      }
+    }
+  },
+
+  "mediapipe_integration": {
+    "package_web": "@mediapipe/tasks-vision",
+    "npm_install": "npm install @mediapipe/tasks-vision",
+    "cdn_wasm": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm",
+    "modes": {
+      "hands_only": {
+        "used_for": ["/predict/static", "/predict/dynamic", "/predict/words"],
+        "landmarks_per_frame": 21,
+        "coords_per_landmark": 3,
+        "landmark_format": "[x, y, z] normalizados 0.0-1.0",
+        "js_extraction": "result.landmarks[0] → array de 21 objetos {x, y, z}",
+        "js_to_api_format": "result.landmarks[0].map(lm => [lm.x, lm.y, lm.z])"
+      },
+      "holistic": {
+        "used_for": ["/predict/holistic"],
+        "total_features": 226,
+        "note": "MediaPipe Holistic está deprecado en tasks-vision. Usar legacy @mediapipe/holistic o construir manualmente con PoseLandmarker + HandLandmarker",
+        "alternative": "Usar PoseLandmarker (33 landmarks × 3) + HandLandmarker ambas manos (21 × 3 cada una), concatenar y normalizar igual que el backend."
+      }
+    },
+    "frame_collection_strategy": {
+      "static": "Enviar en cada frame (modo continuo o con debounce ~200ms)",
+      "dynamic_and_words": "Acumular un buffer de 15 frames, enviar cuando esté lleno, limpiar buffer y repetir",
+      "fps_recommendation": 15,
+      "buffer_size": 15
+    }
+  },
+
+  "prediction_modes": {
+    "letters_static": {
+      "endpoint": "POST /api/v1/predict/static",
+      "vocabulary": "21 letras estáticas LSM (A, B, C, D, E, F, G, H, I, L, M, N, O, P, R, S, T, U, V, W, Y)",
+      "input": "1 frame → 21 landmarks"
+    },
+    "letters_dynamic": {
+      "endpoint": "POST /api/v1/predict/dynamic",
+      "vocabulary": "6 letras dinámicas: J, K, Q, X, Z, Ñ",
+      "input": "15 frames → 21 landmarks por frame"
+    },
+    "words_general": {
+      "endpoint": "POST /api/v1/predict/words",
+      "vocabulary": "249 palabras LSM de uso general",
+      "input": "15 frames → 21 landmarks por frame"
+    },
+    "words_medical": {
+      "endpoint": "POST /api/v1/predict/holistic",
+      "vocabulary": "150 términos médicos LSM",
+      "input": "226 features holísticos (pose + manos)"
+    }
+  },
+
+  "error_codes": {
+    "502": "Vision Service no disponible o error interno",
+    "503": "No se pudo conectar con Vision Service",
+    "504": "Timeout — Vision Service tardó > 30s en responder",
+    "422": "Validation error — datos mal formateados (ej: landmarks con longitud incorrecta)"
+  },
+
+  "environment_vars_for_frontend": {
+    "NEXT_PUBLIC_API_URL": "URL base del API Gateway (ej: https://api.signspeak.app o http://localhost:8080)",
+    "note": "La API ya tiene CORS abierto (*), no se necesita proxy en desarrollo"
+  },
+
+  "frontend_flow_recommendation": {
+    "mode_letters": [
+      "1. Abrir cámara con getUserMedia",
+      "2. En cada frame, usar HandLandmarker para extraer 21 landmarks",
+      "3. Formatear: landmarks = [[x,y,z] × 21]",
+      "4. POST /api/v1/predict/static",
+      "5. Mostrar letra + confidence. Acumular en string para deletrear palabras."
+    ],
+    "mode_words": [
+      "1. Abrir cámara",
+      "2. Acumular frames en buffer (21 landmarks por frame)",
+      "3. Cuando buffer llega a 15 frames → POST /api/v1/predict/words",
+      "4. Mostrar word + phrase acumulada del backend",
+      "5. Botón 'Limpiar frase' → POST /api/v1/predict/words/clear"
+    ],
+    "mode_medical": [
+      "1. Similar a words pero usando PoseLandmarker + HandLandmarker",
+      "2. Construir vector de 226 floats manualmente",
+      "3. POST /api/v1/predict/holistic"
+    ]
+  }
+}
