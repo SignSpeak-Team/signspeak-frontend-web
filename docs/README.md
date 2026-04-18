@@ -4,6 +4,19 @@
 
 ### Interfaz web para traducción en tiempo real de Lenguaje de Señas Mexicano (LSM)
 
+---
+
+**Equipo de Desarrollo:**
+*   **Alan de los Santos Lopez Cetina** — Matrícula: 2202116
+*   **Ángel Jonás Rosales Gonzales** — Matrícula: 2202022
+*   **José Arturo González Flores** — Matrícula: 2202012
+*   **Cesar Enrique Bernal Zurita** — Matrícula: 2201100
+*   **Ángel David Quintana Pacheco** — Matrícula: 2102165
+*   **Cristian Daniel Lázaro Acosta** — Matrícula: 2202055
+*   **Ángel Adrián Yam Huchim** — Matricula: 2202109
+
+---
+
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10-007FFF?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/mediapipe)
@@ -16,72 +29,62 @@
 ## 📋 Tabla de contenidos
 
 1. [Descripción](#-descripción)
-2. [Características](#-características)
-3. [Stack tecnológico](#️-stack-tecnológico)
-4. [Requisitos previos](#-requisitos-previos)
-5. [Instalación](#-instalación)
-6. [Ejecutar localmente](#-ejecutar-localmente)
-7. [Variables de entorno](#-variables-de-entorno)
-8. [Estructura del proyecto](#-estructura-del-proyecto)
-9. [Contribución](#-contribución)
-10. [Licencia](#-licencia)
+2. [Requisitos previos](#-requisitos-previos)
+3. [Instalación y Configuración](#-instalación-y-configuración)
+4. [Ejecutar localmente](#-ejecutar-localmente)
+5. [Tests](#-tests)
+6. [Pipeline de CI](#-pipeline-de-ci)
+7. [Despliegue](#-despliegue)
+8. [Variables de entorno](#-variables-de-entorno)
+9. [Características](#-características)
+10. [Stack tecnológico](#️-stack-tecnológico)
+11. [Licencia](#-licencia)
 
 ---
 
 ## 📖 Descripción
 
-**SignSpeak Frontend Web** es la interfaz de usuario que permite la interacción con el sistema de traducción de LSM. Utiliza la potencia del navegador para realizar la detección de puntos clave (landmarks) de las manos en tiempo real y consume los servicios del backend para la interpretación semántica de las señas.
-
----
-
-## ✨ Características
-
-- 🎥 **Captura en tiempo real**: Acceso a la cámara con baja latencia.
-- 🖐️ **Detección On-Device**: Procesamiento de visión inicial (MediaPipe) ejecutado localmente para mayor privacidad y velocidad.
-- 📡 **Conectividad con Backend**: Comunicación fluida con microservicios para predicciones complejas.
-- 📱 **Diseño Responsive**: Interfaz optimizada para diversos tamaños de pantalla.
-- ⌨️ **Resultados Instantáneos**: Visualización inmediata de letras y palabras detectadas.
-
----
-
-## 🛠️ Stack tecnológico
-
-| Capa             | Tecnología              | Detalle                                                      |
-| :--------------- | :---------------------- | :----------------------------------------------------------- |
-| **Framework**    | Next.js 16 (App Router) | Renderizado híbrido y optimización de rutas.                 |
-| **UI**           | React 19                | Manejo de estado y componentes interactivos.                 |
-| **Visión**       | MediaPipe Tasks Vision  | Detección de landmarks de mano directamente en el navegador. |
-| **Comunicación** | Fetch API / Axios       | Integración con el API Gateway del backend.                  |
-| **Estilos**      | CSS Modules             | Estilos desacoplados y mantenibles.                          |
+**SignSpeak Frontend Web** es la interfaz de usuario que permite la interacción con el sistema de traducción de LSM. Utiliza la potencia del navegador para realizar la detección de puntos clave (landmarks) de las manos en tiempo real mediante MediaPipe y consume los servicios del backend para la interpretación semántica y traducción fluida de señas dinámicas y estáticas.
 
 ---
 
 ## ✅ Requisitos previos
 
-| Herramienta | Versión mínima    | Instalación                                                |
-| :---------- | :---------------- | :--------------------------------------------------------- |
-| **Node.js** | 18.x              | [nodejs.org](https://nodejs.org)                           |
-| **npm**     | 9.x               | Incluido con Node.js                                       |
+| Herramienta | Versión mínima | Instalación |
+| :--- | :--- | :--- |
+| **Node.js** | 18.x | [nodejs.org](https://nodejs.org) |
+| **npm** | 9.x | Incluido con Node.js |
+| **Navegador** | Chrome / Edge | Soporte WebGL/WebAssembly para MediaPipe |
 | **Backend** | SignSpeak Backend | [Instrucciones de Backend](../signspeak-backend/README.md) |
 
 ---
 
-## 📦 Instalación
+## 📦 Instalación y Configuración
 
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/alanctinaDev/signspeak-frontend-web.git
-cd signspeak-frontend-web
+Sigue estos pasos para configurar el frontend en tu máquina local:
 
-# 2. Instalar dependencias
-npm install
-```
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/alanctinaDev/signspeak-frontend-web.git
+   cd signspeak-frontend-web
+   ```
+
+2. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
+
+3. **Configurar variables de entorno:**
+   Crea un archivo `.env.local` en la raíz (puedes basarte en `.env.example`):
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+   ```
 
 ---
 
 ## ▶️ Ejecutar localmente
 
-Para iniciar el servidor de desarrollo:
+Inicia el servidor de desarrollo de Next.js:
 
 ```bash
 npm run dev
@@ -89,62 +92,75 @@ npm run dev
 
 La aplicación estará disponible en [http://localhost:3000](http://localhost:3000).
 
-> 💡 **Nota**: Asegúrate de tener el backend corriendo o configurar la URL del backend en las variables de entorno.
+---
+
+## 🧪 Tests
+
+Asegura la calidad de la interfaz con nuestra suite de pruebas:
+
+```bash
+# Ejecutar pruebas unitarias e integración (Vitest + JSDOM)
+npm test
+
+# Ejecutar pruebas unitarias en modo interactivo (Watch)
+npm run test:watch
+
+# Ejecutar pruebas End-to-End en navegador real (Playwright)
+# Nota: requiere que el servidor local esté activo
+npm run test:e2e
+```
+
+---
+
+## 🔄 Pipeline de CI (Docker & Mocked Checks)
+
+El proyecto incluye un pipeline automatizado definido en GitHub Actions. Puedes validar los componentes del pipeline localmente:
+
+1. **Linting:** `npm run lint`
+2. **Unit Tests:** `npm test`
+3. **E2E Tests:** `npx playwright test` (Requiere instalación previa: `npx playwright install`)
+
+---
+
+## 🚀 Despliegue
+
+La aplicación está diseñada para ser desplegada en plataformas cloud optimizadas para Next.js o contenedores Docker:
+
+### Despliegue con Docker
+```bash
+docker build -t signspeak-frontend .
+docker run -p 3000:3000 signspeak-frontend
+```
 
 ---
 
 ## 🔐 Variables de entorno
 
-Crea un archivo `.env.local` en la raíz del proyecto (puedes basarte en `.env.example` si existe):
+Descripción de las variables clave en el archivo de configuración `.env.local`:
 
-| Variable              | Descripción                     | Valor por defecto              |
-| :-------------------- | :------------------------------ | :----------------------------- |
-| `NEXT_PUBLIC_API_URL` | URL del API Gateway del backend | `http://localhost:8000/api/v1` |
-
----
-
-## 📂 Estructura del proyecto
-
-> Ver [`STRUCTURE.md`](STRUCTURE.md) para la descripción detallada de cada archivo.
-
-```
-signspeak-frontend-web/
-├── src/
-│   ├── app/            # Rutas y componentes de la aplicación
-│   │   ├── components/ # Widgets Reutilizables (Camera, Results)
-│   │   └── ...
-│   └── lib/            # Clientes API y configuración de MediaPipe
-├── public/             # Assets estáticos
-└── ...
-```
+| Variable | Descripción | Valor por defecto |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | Define la URL base del API Gateway del backend para todas las comunicaciones de predicción. | `http://localhost:8000/api/v1` |
 
 ---
 
-## 🤝 Contribución
+## ✨ Características
 
-Sigue el mismo flujo que en el backend:
-
-1. **Forkea** el repositorio.
-2. Crea una branch (`feat/nueva-funcionalidad`).
-3. Asegúrate de pasar el lint: `npm run lint`.
-4. Abre un **Pull Request**.
+- 🎥 **Visión en Navegador**: Detección de manos sin enviar video al servidor.
+- 🖐️ **Multimodalidad**: Soporta letras estáticas, secuenciales y vocabulario médico.
+- 📱 **Mobile First**: Interfaz totalmente adaptable a dispositivos móviles.
+- ⌨️ **Word Builder**: Permite corregir y construir frases complejas interactivamente.
 
 ---
 
 ## 📄 Licencia
 
-Distribuido bajo la licencia **MIT**.
+Distribuido bajo la licencia **MIT**. Ver el archivo `LICENSE` para más detalles.
 
 ---
 
 <div align="center">
 
-Hecho con ❤️ por
+**SignSpeak Team** — 2026
 
-Alan de los Santos Lopez Cetina — Matrícula: 2202116
-Ángel Jonás Rosales Gonzales — Matrícula: 2202022
-José Arturo González Flores — Matrícula: 2202012
-Cesar Enrique Bernal Zurita— Matrícula: 2201100
-Ángel David Quintana Pacheco — Matrícula: 2102165
-Cristian Daniel Lázaro Acosta — Matrícula: 2202055
-Ángel Adrián Yam Huchim — Matricula: 2202109
+</div>
