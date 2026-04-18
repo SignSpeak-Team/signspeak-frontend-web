@@ -148,5 +148,3 @@ Cesar Enrique Bernal Zurita— Matrícula: 2201100
 Ángel David Quintana Pacheco — Matrícula: 2102165
 Cristian Daniel Lázaro Acosta — Matrícula: 2202055
 Ángel Adrián Yam Huchim — Matricula: 2202109
-
-</div>

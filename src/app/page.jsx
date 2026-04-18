@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
@@ -14,7 +15,7 @@ const MODES = [
 export default function SignSpeakApp() {
   const [activeModeId, setActiveModeId] = useState('static');
   const [apiStatus, setApiStatus] = useState('checking'); // checking | online | error
-  
+
   const [currentPred, setCurrentPred] = useState(null); // { text, confidence, type, accepted? }
   const [spelledWord, setSpelledWord] = useState('');
   const [phrase, setPhrase] = useState('');
@@ -63,9 +64,9 @@ export default function SignSpeakApp() {
         setCurrentPred({ text: res.letter, confidence: res.confidence, type: 'dynamic' });
       } else if (activeModeId === 'words') {
         const res = await predictWords(sequence, handedness);
-        setCurrentPred({ 
-          text: res.word, 
-          confidence: res.confidence, 
+        setCurrentPred({
+          text: res.word,
+          confidence: res.confidence,
           type: 'words',
           accepted: res.accepted
         });
@@ -86,9 +87,9 @@ export default function SignSpeakApp() {
     setIsProcessing(true);
     try {
       const res = await predictHolistic(vector);
-      setCurrentPred({ 
-        text: res.word, 
-        confidence: res.confidence, 
+      setCurrentPred({
+        text: res.word,
+        confidence: res.confidence,
         type: 'holistic',
         accepted: res.accepted
       });
@@ -163,13 +164,13 @@ export default function SignSpeakApp() {
           API: {apiStatus === 'online' ? 'Conectado' : apiStatus === 'checking' ? 'Buscando...' : 'Desconectado'}
         </div>
       </header>
-      
+
       <main className="container main-layout">
         <div className="content-area">
           <div className="mode-tabs">
             {MODES.map(m => (
-              <button 
-                key={m.id} 
+              <button
+                key={m.id}
                 className={`mode-tab ${activeModeId === m.id ? 'active' : ''}`}
                 onClick={() => handleModeChange(m.id)}
               >
@@ -190,7 +191,7 @@ export default function SignSpeakApp() {
           </div>
 
           <section className="camera-section">
-             <CameraView 
+             <CameraView
                mode={activeModeId}
                active={true}
                onLandmarks={handleLandmarks}
@@ -226,7 +227,7 @@ export default function SignSpeakApp() {
                  </div>
                )}
             </div>
-            
+
             <div className="confidence-wrap">
               <div className="confidence-label">
                 <span>Certeza del modelo</span>
@@ -247,23 +248,23 @@ export default function SignSpeakApp() {
                 </div>
               </div>
               <div className="phrase-actions">
-                 <button 
-                   className="btn btn-primary" 
+                 <button
+                   className="btn btn-primary"
                    onClick={() => setSpelledWord(w => w + (currentPred?.text || ''))}
                    disabled={!currentPred || (currentPred.type !== 'static' && currentPred.type !== 'dynamic')}
                  >
                     + Agregar '{currentPred ? currentPred.text : ''}'
                  </button>
-                 <button 
-                   className="btn btn-ghost" 
+                 <button
+                   className="btn btn-ghost"
                    onClick={() => setSpelledWord(w => w.slice(0, -1))}
                    disabled={!spelledWord}
                    title="Eliminar última letra"
                  >
                     ⌫
                  </button>
-                 <button 
-                   className="btn btn-danger" 
+                 <button
+                   className="btn btn-danger"
                    onClick={() => setSpelledWord('')}
                    disabled={!spelledWord}
                  >
@@ -278,12 +279,12 @@ export default function SignSpeakApp() {
                 {phrase || <span className="phrase-empty">El backend acumulará tus frases aquí en tiempo real...</span>}
               </div>
               <div className="phrase-actions">
-                 <button 
-                   className="btn btn-danger" 
+                 <button
+                   className="btn btn-danger"
                    onClick={async () => {
-                     try { 
-                       if (activeModeId === 'words') await clearWordBuffer(); 
-                       if (activeModeId === 'holistic') await clearHolisticBuffer(); 
+                     try {
+                       if (activeModeId === 'words') await clearWordBuffer();
+                       if (activeModeId === 'holistic') await clearHolisticBuffer();
                      } catch(e){}
                      setPhrase('');
                      setCurrentPred(null);
