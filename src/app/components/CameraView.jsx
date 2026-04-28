@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { getHandLandmarker, getPoseLandmarker } from '@/lib/mediapipe';
-import { handResultToLandmarks, buildHolisticVector } from '@/lib/api';
+import { buildHolisticVector } from '@/lib/api';
 
 const FRAME_COLORS = {
   static: '#0a84ff', // Apple Blue
@@ -76,6 +76,19 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
   }, [active, startCamera, stopCamera]);
 
   // Draw landmarks helper
+  // Selecciona la mejor mano de los resultados multi-hand de MediaPipe.
+  // Prioriza 'Right' porque el modelo fue entrenado con mano derecha.
+  // En cámara frontal espejada: tu mano derecha real → MediaPipe la reporta como 'Right'.
+  // Si solo está la izquierda, el backend aplicará el flip correcto.
+  const selectBestHand = useCallback((result) => {
+    if (!result?.landmarks?.length) return null;
+    const hands = result.landmarks.map((lms, i) => ({
+      landmarks: lms,
+      handedness: result.handedness?.[i]?.[0]?.categoryName ?? null,
+    }));
+    return hands.find(h => h.handedness === 'Right') ?? hands[0];
+  }, []);
+
   const drawLandmarks = useCallback((ctx, landmarks, color) => {
     if (!landmarks?.length) return;
     const CONNECTIONS = [
@@ -156,16 +169,21 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
         }
       } else if (result?.landmarks?.length) {
         const color = FRAME_COLORS[mode] || '#6c63ff';
-        drawLandmarks(ctx, result.landmarks[0], color);
 
-        const formatted = handResultToLandmarks(result);
-        if (!formatted) { rafRef.current = requestAnimationFrame(detect); return; }
+        // Seleccionar la mejor mano (preferir Right, fallback a primera disponible)
+        const bestHand = selectBestHand(result);
+        if (!bestHand) { rafRef.current = requestAnimationFrame(detect); return; }
+
+        drawLandmarks(ctx, bestHand.landmarks, color);
+
+        // Convertir landmarks al formato de la API [[x,y,z] × 21]
+        const formatted = bestHand.landmarks.map(lm => [lm.x, lm.y, lm.z]);
+        const handedness = bestHand.handedness;
 
         if (mode === 'static') {
           // Debounced continuous send
           if (now - lastCallRef.current > STATIC_DEBOUNCE_MS) {
             lastCallRef.current = now;
-            const handedness = result.handedness?.[0]?.[0]?.categoryName; // MediaPipe Tasks API structure
             onLandmarks?.(formatted, handedness);
           }
         } else {
@@ -176,7 +194,6 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
 
           if (count >= BUFFER_SIZE) {
             const seq = frameBufferRef.current.slice(0, BUFFER_SIZE);
-            const handedness = result.handedness?.[0]?.[0]?.categoryName;
             frameBufferRef.current = [];
             setBufferCount(0);
             onSequenceReady?.(seq, handedness);
@@ -191,7 +208,8 @@ export default function CameraView({ mode, onLandmarks, onSequenceReady, onHolis
 
     rafRef.current = requestAnimationFrame(detect);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [camStatus, mpLoaded, mode, onLandmarks, onSequenceReady, onHolisticReady, drawLandmarks]);
+  }, [camStatus, mpLoaded, mode, onLandmarks, onSequenceReady, onHolisticReady, drawLandmarks, selectBestHand]);
+
 
   // Reset buffer on mode change
   useEffect(() => {
