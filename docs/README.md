@@ -38,14 +38,13 @@
 8. [Variables de entorno](#-variables-de-entorno)
 9. [Características](#-características)
 10. [Stack tecnológico](#️-stack-tecnológico)
-11. [Estructura del proyecto](#-estructura-del-proyecto)
-12. [Licencia](#-licencia)
+11. [Licencia](#-licencia)
 
 ---
 
 ## 📖 Descripción
 
-**SignSpeak Frontend Web** es la interfaz de usuario que permite la interacción con el sistema de traducción de LSM. Utiliza la potencia del navegador para realizar la detección de puntos clave (landmarks) de las manos en tiempo real mediante MediaPipe y consume los servicios del backend para la interpretación semántica y traducción fluida.
+**SignSpeak Frontend Web** es la interfaz de usuario que permite la interacción con el sistema de traducción de LSM. Utiliza la potencia del navegador para realizar la detección de puntos clave (landmarks) de las manos en tiempo real mediante MediaPipe y consume los servicios del backend para la interpretación semántica y traducción fluida de señas dinámicas y estáticas.
 
 ---
 
@@ -55,7 +54,7 @@
 | :--- | :--- | :--- |
 | **Node.js** | 18.x | [nodejs.org](https://nodejs.org) |
 | **npm** | 9.x | Incluido con Node.js |
-| **Navegador** | Chrome / Edge | Soporte WebGL para MediaPipe |
+| **Navegador** | Chrome / Edge | Soporte WebGL/WebAssembly para MediaPipe |
 | **Backend** | SignSpeak Backend | [Instrucciones de Backend](../signspeak-backend/README.md) |
 
 ---
@@ -76,7 +75,7 @@ Sigue estos pasos para configurar el frontend en tu máquina local:
    ```
 
 3. **Configurar variables de entorno:**
-   Crea un archivo `.env.local` en la raíz:
+   Crea un archivo `.env.local` en la raíz (puedes basarte en `.env.example`):
    ```bash
    NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
    ```
@@ -97,43 +96,37 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 
 ## 🧪 Tests
 
-El proyecto cuenta con una suite completa de pruebas:
+Asegura la calidad de la interfaz con nuestra suite de pruebas:
 
 ```bash
-# Ejecutar pruebas unitarias e integración (Vitest)
+# Ejecutar pruebas unitarias e integración (Vitest + JSDOM)
 npm test
 
-# Ejecutar pruebas unitarias en modo interactivo
+# Ejecutar pruebas unitarias en modo interactivo (Watch)
 npm run test:watch
 
-# Ejecutar pruebas End-to-End (Playwright)
-# Nota: requiere que el servidor esté corriendo
+# Ejecutar pruebas End-to-End en navegador real (Playwright)
+# Nota: requiere que el servidor local esté activo
 npm run test:e2e
 ```
 
 ---
 
-## 🔄 Pipeline de CI (GitHub Actions)
+## 🔄 Pipeline de CI (Docker & Mocked Checks)
 
-El proyecto incluye un pipeline automatizado definido en `.github/workflows/ci.yml`. Puedes reproducir los pasos del pipeline localmente:
+El proyecto incluye un pipeline automatizado definido en GitHub Actions. Puedes validar los componentes del pipeline localmente:
 
 1. **Linting:** `npm run lint`
-2. **Pruebas de Unidad:** `npm test`
-3. **Pruebas E2E:** `npx playwright test`
-
-Para ejecutar las pruebas E2E correctamente, asegúrate de tener instalados los navegadores de Playwright:
-```bash
-npx playwright install chromium --with-deps
-```
+2. **Unit Tests:** `npm test`
+3. **E2E Tests:** `npx playwright test` (Requiere instalación previa: `npx playwright install`)
 
 ---
 
 ## 🚀 Despliegue
 
-La aplicación se puede desplegar fácilmente en plataformas como **Vercel** (recomendado para Next.js) o mediante **Docker**:
+La aplicación está diseñada para ser desplegada en plataformas cloud optimizadas para Next.js o contenedores Docker:
 
-### Con Docker
-Si deseas desplegarlo localmente con Docker:
+### Despliegue con Docker
 ```bash
 docker build -t signspeak-frontend .
 docker run -p 3000:3000 signspeak-frontend
@@ -143,31 +136,31 @@ docker run -p 3000:3000 signspeak-frontend
 
 ## 🔐 Variables de entorno
 
-Descripción de las variables en `.env.local`:
+Descripción de las variables clave en el archivo de configuración `.env.local`:
 
 | Variable | Descripción | Valor por defecto |
 | :--- | :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | URL base del API Gateway del backend para las peticiones de predicción. | `http://localhost:8000/api/v1` |
+| `NEXT_PUBLIC_API_URL` | Define la URL base del API Gateway del backend para todas las comunicaciones de predicción. | `http://localhost:8000/api/v1` |
 
 ---
 
 ## ✨ Características
 
-- 🎥 **Captura en tiempo real**: Acceso a la cámara con baja latencia.
-- 🖐️ **Detección On-Device**: Procesamiento inicial (MediaPipe) en el navegador.
-- 📱 **Diseño Responsive**: Interfaz optimizada para móviles y escritorio.
-- ⌨️ **Constructor de Palabras**: Interfaz interactiva para formar frases letra por letra.
+- 🎥 **Visión en Navegador**: Detección de manos sin enviar video al servidor.
+- 🖐️ **Multimodalidad**: Soporta letras estáticas, secuenciales y vocabulario médico.
+- 📱 **Mobile First**: Interfaz totalmente adaptable a dispositivos móviles.
+- ⌨️ **Word Builder**: Permite corregir y construir frases complejas interactivamente.
 
 ---
 
 ## 📄 Licencia
 
-Distribuido bajo la licencia **MIT**. Ver `LICENSE` para más detalles.
+Distribuido bajo la licencia **MIT**. Ver el archivo `LICENSE` para más detalles.
 
 ---
 
 <div align="center">
 
-Hecho con ❤️ por el equipo de **SignSpeak**
+**SignSpeak Team** — 2026
 
 </div>
